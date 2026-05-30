@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ImpactGrid — Temporarily Closed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0c0f;
+      --surface: #111418;
+      --border: rgba(255,255,255,0.07);
+      --accent: #c8f04e;
+      --accent-dim: rgba(200, 240, 78, 0.12);
+      --text-primary: #f0ede8;
+      --text-secondary: #6e7580;
+      --text-muted: #3a3f48;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'DM Mono', monospace;
+      overflow: hidden;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.6;
+    }
+
+    /* Subtle grid lines */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Radial glow */
+    .glow {
+      position: fixed;
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200,240,78,0.05) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 2.5rem 3rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Top bar */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.1s;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 3px;
+    }
+
+    .logo-mark span {
+      background: var(--accent);
+      border-radius: 2px;
+      opacity: 0.9;
+    }
+
+    .logo-mark span:nth-child(2) { opacity: 0.5; }
+    .logo-mark span:nth-child(3) { opacity: 0.3; }
+    .logo-mark span:nth-child(4) { opacity: 0.7; }
+
+    .logo-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      background: var(--surface);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f0a04a;
+      box-shadow: 0 0 6px #f0a04a;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* Main content */
+    main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2rem 0;
+    }
+
+    .eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.8rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.3s;
+    }
+
+    .headline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      font-weight: 300;
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.45s;
+    }
+
+    .headline em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .divider {
+      width: 48px;
+      height: 1px;
+      background: var(--accent);
+      margin: 2.5rem 0;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.6s;
+    }
+
+    .body-text {
+      max-width: 520px;
+      font-size: 0.82rem;
+      line-height: 1.85;
+      color: var(--text-secondary);
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.75s;
+    }
+
+    .info-grid {
+      display: flex;
+      gap: 3rem;
+      margin-top: 3rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.9s;
+    }
+
+    .info-item {}
+
+    .info-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .info-value {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      margin-top: 3.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1.05s;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .progress-track {
+      height: 2px;
+      background: var(--border);
+      border-radius: 1px;
+      overflow: hidden;
+      max-width: 420px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 1px;
+      width: 0%;
+      animation: fillBar 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 1.4s;
+    }
+
+    @keyframes fillBar {
+      to { width: 73%; }
+    }
+
+    /* Footer */
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 1.2s;
+    }
+
+    .footer-left {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .footer-contact {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      transition: color 0.2s;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    .footer-contact:hover {
+      color: var(--accent);
+      border-color: rgba(200,240,78,0.3);
+    }
+
+    .footer-contact svg {
+      opacity: 0.5;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Vertical accent line */
+    .vert-line {
+      position: fixed;
+      left: 3rem;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--accent-dim) 30%, var(--accent-dim) 70%, transparent);
+      z-index: 5;
+      opacity: 0;
+      animation: fadeUp 1s ease forwards 0.2s;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="vert-line"></div>
+
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="logo-mark">
+          <span></span><span></span>
+          <span></span><span></span>
+        </div>
+        <span class="logo-name">ImpactGrid</span>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        Maintenance in progress
+      </div>
+    </header>
+
+    <main>
+      <p class="eyebrow">Service notice</p>
+      <h1 class="headline">
+        Temporarily<br /><em>offline.</em>
+      </h1>
+      <div class="divider"></div>
+      <p class="body-text">
+        ImpactGrid is currently closed for scheduled maintenance. Our team is working to improve performance, security, and reliability. We apologise for any inconvenience and appreciate your patience.
+      </p>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Expected duration</div>
+          <div class="info-value">A short while</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Reason</div>
+          <div class="info-value">Scheduled maintenance</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Status</div>
+          <div class="info-value">Work underway</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span>Maintenance progress</span>
+          <span id="pct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footer-left">© 2026 ImpactGrid — All rights reserved</div>
+      <a class="footer-contact" href="mailto:hello@impactgrid.com">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+        </svg>
+        Contact support
+      </a>
+    </footer>
+  </div>
+
+  <script>
+    // Animate the percentage counter to match progress bar
+    const pctEl = document.getElementById('pct');
+    let start = null;
+    const duration = 2500;
+    const delay = 1400;
+    const target = 73;
+
+    setTimeout(() => {
+      function step(ts) {
+        if (!start) start = ts;
+        const elapsed = ts - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        pctEl.textContent = Math.round(eased * target) + '%';
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }, delay);
+  </script>
+</body>
+</html>
